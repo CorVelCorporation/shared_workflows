@@ -1,18 +1,16 @@
 name: Build and Deploy
 
-on:
-  push:
-    branches:
-      - 'main'
-  pull_request:
-    branches:
-      - 'main'
-  workflow_dispatch:
+on: 
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
 
 jobs:
   build-deploy:
     runs-on: ubuntu-20.04
-    environment: dev
+    environment: ${{inputs.environment}}
  
     steps:
       - uses: actions/checkout@v3
