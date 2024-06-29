@@ -15,6 +15,28 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Configure AWS Credentials
+        if: ${{ github.event.inputs.DO_WHITELIST_GITHUB_ACTION_IP == 'true' }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_EC2_REGION }}
+
+      - name: Get Runner IP Address
+        id: ip
+        if: ${{ github.event.inputs.DO_WHITELIST_GITHUB_ACTION_IP == 'true' }}
+        uses: haythem/public-ip@v1.2
+      
+      - name: Whitelist Runner IP Address
+        if: ${{ github.event.inputs.DO_WHITELIST_GITHUB_ACTION_IP == 'true' }}
+        run: |
+          aws ec2 authorize-security-group-ingress \
+            --group-id ${{ vars.AWS_EC2_SECURITY_GROUP_ID }} \
+            --protocol tcp \
+            --port 22 \
+            --cidr ${{ steps.ip.outputs.ipv4 }}/32
+
       - name: Setup PHP
         uses: php-actions/composer@v6
         with:
@@ -71,3 +93,12 @@ jobs:
             echo "Removing old releases"
             # cd releases && ls -1t | tail -n +11 | xargs rm -rf
             # find . -not -perm -g=w -exec chmod -R g+w {} \;
+
+      - name: Revoke Runner IP address
+        if: ${{ github.event.inputs.DO_WHITELIST_GITHUB_ACTION_IP == 'true' }}
+        run: |
+          aws ec2 revoke-security-group-ingress \
+            --group-id ${{ vars.AWS_EC2_SECURITY_GROUP_ID }} \
+            --protocol tcp \
+            --port 22 \
+            --cidr ${{ steps.ip.outputs.ipv4 }}/32
