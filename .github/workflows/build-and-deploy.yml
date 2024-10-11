@@ -91,7 +91,7 @@ jobs:
             rm -f current
             ln -s releases/${COMMIT_HASH} current
             echo "Removing old releases"
-            # cd releases && ls -1t | tail -n +11 | xargs rm -rf
+            cd releases && ls -1t | tail -n +11 | xargs rm -rf
             # find . -not -perm -g=w -exec chmod -R g+w {} \;
 
       - name: Revoke Runner IP address
