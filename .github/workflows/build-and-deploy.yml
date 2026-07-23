@@ -26,7 +26,7 @@ jobs:
       - name: Get Runner IP Address
         id: ip
         if: ${{ vars.DO_WHITELIST_GITHUB_ACTION_IP == 'true' }}
-        uses: haythem/public-ip@v1.3
+        run: echo "ipv4=$(curl -s https://checkip.amazonaws.com)" >> "$GITHUB_OUTPUT"
       
       - name: Whitelist Runner IP Address
         if: ${{ vars.DO_WHITELIST_GITHUB_ACTION_IP == 'true' }}
